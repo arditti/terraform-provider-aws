@@ -889,6 +889,61 @@ func TestAccWAFV2WebACLRule_invalidLogicalStatementNesting(t *testing.T) {
 	})
 }
 
+func TestAccWAFV2WebACLRule_logicalStatementMaxDepth(t *testing.T) {
+	ctx := acctest.Context(t)
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+	resourceName := "aws_wafv2_web_acl_rule.test"
+
+	// Four levels of logical statements.
+	statement := testAccWebACLRuleStatement_and(
+		testAccWebACLRuleStatement_or(
+			testAccWebACLRuleStatement_and(
+				testAccWebACLRuleStatement_not(testAccWebACLRuleStatement_geoMatch),
+				testAccWebACLRuleStatement_labelMatch,
+			),
+			testAccWebACLRuleStatement_geoMatch,
+		),
+		testAccWebACLRuleStatement_labelMatch,
+	)
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.WAFV2ServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckWebACLRuleDestroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWebACLRuleConfig_statement(rName, statement),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckWebACLRuleExists(ctx, t, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "statement.0.and_statement.0.statement.0.or_statement.0.statement.0.and_statement.0.statement.0.not_statement.0.statement.0.geo_match_statement.0.country_codes.0", "US"),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateIdFunc:                    acctest.AttrsImportStateIdFunc(resourceName, flex.ResourceIdSeparator, "web_acl_arn", names.AttrName),
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "web_acl_arn",
+			},
+			{
+				// A fifth level is rejected.
+				Config: testAccWebACLRuleConfig_statement(rName, testAccWebACLRuleStatement_and(
+					testAccWebACLRuleStatement_or(
+						testAccWebACLRuleStatement_and(
+							testAccWebACLRuleStatement_not(testAccWebACLRuleStatement_not(testAccWebACLRuleStatement_geoMatch)),
+							testAccWebACLRuleStatement_labelMatch,
+						),
+						testAccWebACLRuleStatement_geoMatch,
+					),
+					testAccWebACLRuleStatement_labelMatch,
+				)),
+				ExpectError: regexache.MustCompile(`Blocks of type "not_statement" are not expected here`),
+			},
+		},
+	})
+}
+
 // State written before and_statement, or_statement and not_statement were narrowed to the
 // statement types AWS WAF accepts in them still holds the removed blocks as empty lists.
 func TestWebACLRuleUpgradeResourceState_logicalStatementNesting(t *testing.T) {

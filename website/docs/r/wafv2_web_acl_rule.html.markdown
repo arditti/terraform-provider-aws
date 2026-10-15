@@ -509,7 +509,7 @@ Exactly one of the following statement blocks must be specified:
 * `sqli_match_statement` - (Optional) Match requests that appear to contain SQL injection attacks. See [SQL Injection Match Statement](#sql-injection-match-statement) below.
 * `xss_match_statement` - (Optional) Match requests that appear to contain cross-site scripting attacks. See [Cross-Site Scripting Match Statement](#cross-site-scripting-match-statement) below.
 
-~> **NOTE:** Logical statements (`and_statement`, `not_statement`, `or_statement`) can be nested up to 3 levels deep. This matches the nesting limit of the `aws_wafv2_web_acl` resource. As in AWS WAF, `managed_rule_group_statement`, `rate_based_statement` and `rule_group_reference_statement` can only be used at the top level of a rule's `statement`, not inside a logical statement.
+~> **NOTE:** Logical statements (`and_statement`, `not_statement`, `or_statement`) can be nested up to 4 levels deep, one more than the inline `rule` blocks of the `aws_wafv2_web_acl` resource. As in AWS WAF, `managed_rule_group_statement`, `rate_based_statement` and `rule_group_reference_statement` can only be used at the top level of a rule's `statement`, not inside a logical statement.
 
 #### And Statement
 

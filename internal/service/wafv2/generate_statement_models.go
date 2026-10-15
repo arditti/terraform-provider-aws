@@ -17,7 +17,7 @@ import (
 	"text/template"
 )
 
-const maxLevel = 3 // Change this to expand nesting depth
+const maxLevel = 4 // Change this to expand nesting depth
 
 //go:embed web_acl_rule_statement_models.gtpl
 var modelTemplate string

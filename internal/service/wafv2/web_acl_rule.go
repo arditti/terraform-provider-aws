@@ -928,9 +928,9 @@ type webACLRuleCustomHeaderModel struct {
 }
 
 // webACLRuleStatementModel is defined in web_acl_rule_statement_models_gen.go
-// as a type alias to webACLRuleStatementLevel3Model (the top level).
+// as a type alias to webACLRuleStatementLevel4Model (the top level).
 // This allows logical operations (and_statement, or_statement, not_statement)
-// to nest up to 3 levels deep, matching the legacy aws_wafv2_web_acl behavior.
+// to nest up to 4 levels deep.
 
 func (m webACLRuleStatementModel) Expand(ctx context.Context) (result any, diags diag.Diagnostics) {
 	switch {
